@@ -1,0 +1,55 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+# Step 1: Define the URL to scrape
+BASE_URL = "https://www.w3schools.com/{language}/default.asp"
+
+# Step 2: Function to fetch HTML
+def fetch_html(url):
+    try:
+        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching {url}: {e}")
+        return None
+
+# Step 3: Parse HTML and extract tutorial names and links
+def parse_html(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    tutorials = []
+
+    # Example: Change selectors to match the actual structure
+    for link in soup.select("a.tutorial-link"):
+        title = link.text.strip()
+        href = link['href']
+        tutorials.append({"Title": title, "Link": f"https://www.w3schools.com{href}"})
+
+    return tutorials
+
+# Step 4: Main function to scrape data
+def scrape_w3schools():
+    languages = ["html", "css", "javascript"]  # Add or modify languages as needed
+    all_tutorials = []
+    for lang in languages:
+        print(f"Scraping {lang} tutorials...")
+        url = BASE_URL.format(language=lang)
+        html = fetch_html(url)
+        if html:
+            tutorials = parse_html(html)
+            all_tutorials.extend(tutorials)
+
+    return all_tutorials
+
+# Step 5: Save data to CSV
+def save_to_csv(data, filename):
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
+    print(f"Data saved to {filename}")
+
+# Run the scraper
+if __name__ == "__main__":
+    scraped_data = scrape_w3schools()
+    if scraped_data:
+        save_to
